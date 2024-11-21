@@ -240,7 +240,6 @@ class Bot(StartDriver):
                 self.random_sleep(3,5)
 
                 file_name = self.wait_for_file_download()
-                self.random_sleep(3,5)
 
                 video_infor = self.genrate_handjob_a_data_dict(vd_link,category)
                 name_of_file = os.path.join(self.download_path, video_infor['Video-name'])
