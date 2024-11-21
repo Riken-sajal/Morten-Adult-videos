@@ -115,15 +115,24 @@ class Bot(StartDriver):
             video_link = self.driver.find_elements(By.XPATH,'//*[@class="download-full-movie"]/div/*')[-2].get_attribute('href')
             video_name = f"handjob_{self.handjob.main_category.replace('videos', '')}_{self.sanitize_title(video_title)}"
             
-            # VideoDdownloaded = False
-            # try :VideoDdownloaded = urllib.request.urlretrieve(video_link, os.path.join(collection_path, f'{video_name}.mp4'))
-            # except Exception as e : print('Error : Videos downloading in handjob :',e)
+            media_path = os.path.join(os.getcwd(),'media')
+            video_media_path = os.path.join(media_path,'videos','handjob_category_videos',self.handjob.main_category)
+            image_media_path = os.path.join(media_path,'image','handjob_category_videos',self.handjob.main_category)
+            self.create_or_check_path(self.handjob_category_path,sub_folder_=self.handjob.main_category)
             
-            # try :ImgDownloaded = urllib.request.urlretrieve(img_src, os.path.join(collection_path, f'{video_name}.jpg'))
-            # except Exception as e : print('Error : image downloading in handjob :',e)
-            # if not VideoDdownloaded or not ImgDownloaded : 
-            #     print('error : Video or Image could not download in hand job')
-            #     continue
+            os.makedirs(video_media_path,exist_ok=True)
+            os.makedirs(image_media_path,exist_ok=True)
+            
+            VideoDdownloaded = False
+            try :VideoDdownloaded = urllib.request.urlretrieve(video_link,os.path.join(video_media_path, f'{video_name}.mp4'))
+            except Exception as e : print('Error : Videos downloading in handjob :',e)
+            
+            try :ImgDownloaded = urllib.request.urlretrieve(img_src, os.path.join(image_media_path, f'{video_name}.jpg'))
+            except Exception as e : print('Error : image downloading in handjob :',e)
+            if not VideoDdownloaded or not ImgDownloaded : 
+                print('error : Video or Image could not download in hand job')
+                continue
+            
             
             tmp = {"Likes" : "","Disclike" :"","Url" : video_url,"Category" : self.handjob.main_category,"video_download_url" : '',"Title" : '',"Discription" : "","Release-Date" : "","Poster-Image_uri" : img_src,"poster_download_uri" : '',"Video-name" : '',"Photo-name" : '',"Pornstarts" : '',"Username" : self.handjob.website_name}
             
@@ -154,10 +163,9 @@ class Bot(StartDriver):
             tmp['Pornstarts'] = model_name    
             
             cetegory_obj, _ = cetegory.objects.get_or_create(category = self.handjob.main_category)
-
             videos_data_obj = VideosData.objects.create(
-                video = f'{collection_path.replace(self.base_path,"")}/{video_name}.mp4',
-                image = f'{collection_path.replace(self.base_path,"")}/{video_name}.jpg',
+                video = os.path.join('image','handjob_category_videos',self.handjob.main_category,f'{video_name}.mp4'),
+                image = os.path.join('image','handjob_category_videos',self.handjob.main_category,f'{video_name}.jpg'),
                 Username = self.handjob.username,
                 Likes = 0,
                 Disclike = 0,
@@ -237,34 +245,27 @@ class Bot(StartDriver):
                 video_infor = self.genrate_handjob_a_data_dict(vd_link,category)
                 name_of_file = os.path.join(self.download_path, video_infor['Video-name'])
 
-                os.rename(os.path.join(self.download_path,file_name), name_of_file)
+                media_path = os.path.join(os.getcwd(),'media')
+                video_media_path = os.path.join(media_path,'videos','handjob_category_videos',category.category)
+                image_media_path = os.path.join(media_path,'image','handjob_category_videos',category.category)
+                
+                
+                
+                
+                final_video_media_path = os.path.join(video_media_path, video_infor['Video-name'])
+                os.rename(os.path.join(self.download_path,file_name), final_video_media_path)
                 self.random_sleep(3,5)
                 
-                collection_path = os.path.join(self.download_path,'handjob_category_videos',f'{hand_job_category_name}')
-                shutil.move(name_of_file,f'{collection_path}/{video_infor["Video-name"]}')
-                
-                if not os.path.exists(collection_path):
-                    os.mkdir(collection_path)
-                
+                final_image_media_path = os.path.join(image_media_path,video_infor["Video-name"].replace('.mp4','.jpg'))
                 response = requests.get(vd_link[1])
                 if response.status_code == 200:
-                    with open(f'{collection_path}/{video_infor["Video-name"]}.jpg', 'wb') as file: 
-                        file.write(response.content)
+                    with open(final_image_media_path, 'wb') as file: file.write(response.content)
 
-                
                 cetegory_obj, _ = cetegory.objects.get_or_create(category = category)
-                video_file = f'{collection_path.replace(self.base_path,"")}/{video_infor["Video-name"]}'
-                
-                if os.path.exists(video_file) :
-                    video_file = self.copy_files_in_media_folder(video_file)
-                    
-                image_file = f'{collection_path}/{video_infor["Photo-name"]}'
-                if os.path.exists(image_file) :
-                    image_file = self.copy_files_in_media_folder(image_file)
                     
                 videos_data_obj = VideosData.objects.create(
-                    video = video_file,
-                    image = image_file,
+                    video = final_video_media_path,
+                    image = final_image_media_path,
                     Username = self.handjob.username,
                     Likes = 0,
                     Disclike = 0,
