@@ -81,7 +81,7 @@ class Bot(StartDriver):
         
         # download from main category
         self.driver.get(f"https://handjob.tv/search/{self.handjob.main_category}/")
-        
+    
         soup = BeautifulSoup(self.driver.page_source, 'html.parser')
         numbers_of_download_videos = self.handjob.numbers_of_download_videos
         video_links = soup.find_all('a', href=lambda value: value and '/video/' in value)
@@ -97,7 +97,13 @@ class Bot(StartDriver):
             if not video_date_ele : continue
             
             date_string = video_date_ele.get_text(strip=True)
-            if not self.date_older_or_not(date_string, self.handjob.more_than_old_days_download) : continue
+            date = date_string
+            
+            today = datetime.now()
+            old_date = today - timedelta(days=self.handjob.more_than_old_days_download)
+            date_obj = parser.parse(date)
+            
+            if not date_obj < old_date: continue
 
             video_url = 'https://handjob.tv' + video_url
             img_src = 'https:'+img_tag['src']
@@ -122,7 +128,6 @@ class Bot(StartDriver):
             
             os.makedirs(video_media_path,exist_ok=True)
             os.makedirs(image_media_path,exist_ok=True)
-            
             VideoDdownloaded = False
             try :VideoDdownloaded = urllib.request.urlretrieve(video_link,os.path.join(video_media_path, f'{video_name}.mp4'))
             except Exception as e : print('Error : Videos downloading in handjob :',e)
@@ -133,9 +138,7 @@ class Bot(StartDriver):
                 print('error : Video or Image could not download in hand job')
                 continue
             
-            
             tmp = {"Likes" : "","Disclike" :"","Url" : video_url,"Category" : self.handjob.main_category,"video_download_url" : '',"Title" : '',"Discription" : "","Release-Date" : "","Poster-Image_uri" : img_src,"poster_download_uri" : '',"Video-name" : '',"Photo-name" : '',"Pornstarts" : '',"Username" : self.handjob.website_name}
-            
             model_name_ele = self.find_element('models name','//div[@class="model-tags"]')
             if model_name_ele :
                 model_name = model_name_ele.text.replace('Model:','').strip()
@@ -161,10 +164,11 @@ class Bot(StartDriver):
             tmp['poster_download_uri'] = p_url
             tmp['video_download_url'] = v_url
             tmp['Pornstarts'] = model_name    
-            
+            print("Image file : ",os.path.join('video','handjob_category_videos',self.handjob.main_category,f'{video_name}.mp4'))
+            print("Video file : ",os.path.join('image','handjob_category_videos',self.handjob.main_category,f'{video_name}.jpg'))
             cetegory_obj, _ = cetegory.objects.get_or_create(category = self.handjob.main_category)
             videos_data_obj = VideosData.objects.create(
-                video = os.path.join('image','handjob_category_videos',self.handjob.main_category,f'{video_name}.mp4'),
+                video = os.path.join('videos','handjob_category_videos',self.handjob.main_category,f'{video_name}.mp4'),
                 image = os.path.join('image','handjob_category_videos',self.handjob.main_category,f'{video_name}.jpg'),
                 Username = self.handjob.username,
                 Likes = 0,
@@ -173,7 +177,7 @@ class Bot(StartDriver):
                 Title = video_title,
                 Discription = discription,
                 Release_Date = date_string,
-                Poster_Image_url = p_url,
+                Poster_Image_url = img_src,
                 video_download_url = v_url,
                 Video_name = f'{video_name}.mp4',
                 Photo_name = f'{video_name}.jpg',
@@ -247,13 +251,15 @@ class Bot(StartDriver):
                 self.random_sleep(3,5)
 
                 file_name = self.wait_for_file_download(files)
-
                 video_infor = self.genrate_handjob_a_data_dict(vd_link,category)
                 name_of_file = os.path.join(self.download_path, video_infor['Video-name'])
 
                 media_path = os.path.join(os.getcwd(),'media')
                 video_media_path = os.path.join(media_path,'videos','handjob_category_videos',category.category)
                 image_media_path = os.path.join(media_path,'image','handjob_category_videos',category.category)
+                
+                os.makedirs(video_media_path, exist_ok=True)
+                os.makedirs(image_media_path, exist_ok=True)
                 
                 final_video_media_path = os.path.join(video_media_path, video_infor['Video-name'])
                 os.rename(os.path.join(self.download_path,file_name), final_video_media_path)
@@ -265,10 +271,11 @@ class Bot(StartDriver):
                     with open(final_image_media_path, 'wb') as file: file.write(response.content)
 
                 cetegory_obj, _ = cetegory.objects.get_or_create(category = category)
-                    
+                print("Image file : ",os.path.join('image','handjob_category_videos',category.category,f'{video_infor["Video-name"]}'.replace('.mp4','.jpg')))
+                print("Video file : ",os.path.join('videos','handjob_category_videos',category.category,f'{video_infor["Video-name"]}'))
                 videos_data_obj = VideosData.objects.create(
-                    video = final_video_media_path,
-                    image = final_image_media_path,
+                    video = os.path.join('videos','handjob_category_videos',category.category,f'{video_infor["Video-name"]}'),
+                    image = os.path.join('image','handjob_category_videos',category.category,f'{video_infor["Video-name"]}'.replace('.mp4','.jpg')),
                     Username = self.handjob.username,
                     Likes = 0,
                     Disclike = 0,

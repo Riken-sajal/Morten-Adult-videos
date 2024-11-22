@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseNotFound
 from django.conf import Settings
 from Scrape import settings
-import os
+import os, pandas as pd
 # Create your views here.
 
 
@@ -52,41 +52,51 @@ from django.urls import reverse
 from django.http import FileResponse
 
 def generate_csv(configuration,request):
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = f'attachment; filename="{configuration.website_name}_{now().strftime("%Y%m%d%H%M%S")}.csv"'
+    """
+    Generates a CSV file for the given configuration using pandas and returns it as an HTTP response.
+    
+    Parameters:
+        configuration: The configuration object to filter video data.
+        request: The HTTP request object for generating absolute URLs.
 
-    writer = csv.writer(response)
-
-    writer.writerow([
-        'Video Name', 
-        'Title', 
-        'Username', 
-        'Likes', 
-        'Dislikes', 
-        'Video URL', 
-        'Image URL', 
-        'Direct Video Download Link', 
-        'Direct Image Download Link',
-        'Release Date', 
-        'Poster Image URL'
-    ])
-
+    Returns:
+        HttpResponse: The CSV file as an attachment.
+    """
+    # Fetch video data for the configuration
     videos = VideosData.objects.filter(configuration=configuration)
+    
+    # Prepare data for the DataFrame
+    data = []
     for video in videos:
         video_download_link = request.build_absolute_uri(reverse('download_media_file', args=[video.video.name])) if video.video else ''
         image_download_link = request.build_absolute_uri(reverse('download_media_file', args=[video.image.name])) if video.image else ''
-        writer.writerow([
-            video.Video_name,
-            video.Title,
-            video.Username,
-            video.Likes,
-            video.Disclike,
-            video.Url,
-            video.Poster_Image_url,
-            video_download_link,  
-            image_download_link,  
-            video.Release_Date,
-        ])
+        
+        data.append({
+            'Direct Video Download Link': video_download_link,
+            'Direct Image Download Link': image_download_link,
+            'Handjob Video Url': video.Url,
+            'Video Name': video.Video_name,
+            'Photo name': video.Photo_name,
+            'Title': video.Title,
+            'Discription': video.Discription,
+            'Pornstarts': video.Pornstarts,
+            'cetegory': video.cetegory.category,
+            'Username': video.Username,
+            'Likes': video.Likes,
+            'Dislikes': video.Disclike,
+            'Video URL': video.Url,
+            'Image URL': video.Poster_Image_url,
+            'Release Date': video.Release_Date,
+        })
+
+    # Create a pandas DataFrame
+    df = pd.DataFrame(data)
+
+    # Convert the DataFrame to CSV format
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="{configuration.website_name}_{now().strftime("%Y%m%d%H%M%S")}.csv"'
+
+    df.to_csv(response, index=False)  # Write DataFrame to the response object
 
     return response
 

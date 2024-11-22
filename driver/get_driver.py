@@ -360,13 +360,12 @@ class StartDriver():
             time.sleep(1)
             
             # List only files in the top level of the directory
-            files_new = [f for f in os.listdir(download_dir) if os.path.isfile(os.path.join(download_dir, f))]
-            crdownload_files = [f for f in files_new if f.endswith('.crdownload')]
-
-            if crdownload_files:
-                crdownload_file = crdownload_files[0]
-                print(f"Download started: {crdownload_file}")
-                break
+            for crd in os.listdir(download_dir) :
+                if crd.endswith('.crdownload') :
+                    crdownload_file = crd
+                    print(f"Download started: {crdownload_file}")
+                    break
+                
         else :
             for f in os.listdir(download_dir) : 
                 if os.path.isfile(os.path.join(download_dir, f)) :
