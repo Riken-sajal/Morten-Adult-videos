@@ -357,7 +357,6 @@ class StartDriver():
         crdownload_file = None
 
         while time.time() - start_time < timeout:
-            time.sleep(1)
 
             # List only files in the top level of the directory
             files = [f for f in os.listdir(download_dir) if os.path.isfile(os.path.join(download_dir, f))]

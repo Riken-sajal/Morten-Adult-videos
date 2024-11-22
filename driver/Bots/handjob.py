@@ -248,9 +248,6 @@ class Bot(StartDriver):
                 video_media_path = os.path.join(media_path,'videos','handjob_category_videos',category.category)
                 image_media_path = os.path.join(media_path,'image','handjob_category_videos',category.category)
                 
-                
-                
-                
                 final_video_media_path = os.path.join(video_media_path, video_infor['Video-name'])
                 os.rename(os.path.join(self.download_path,file_name), final_video_media_path)
                 self.random_sleep(3,5)
