@@ -235,11 +235,18 @@ class Bot(StartDriver):
 
                 self.driver.get(vd_link[0])
                 self.random_sleep(5,7)
-
+                
+                download_dir = "downloads"
+                files = []
+                for f in os.listdir(download_dir) : 
+                    if os.path.isfile(os.path.join(download_dir, f)) :
+                        files.append(f)
+                
+                # download btn
                 self.driver.find_elements(By.XPATH,'//*[@class="download-full-movie"]/div/*')[-2].click()
                 self.random_sleep(3,5)
 
-                file_name = self.wait_for_file_download()
+                file_name = self.wait_for_file_download(files)
 
                 video_infor = self.genrate_handjob_a_data_dict(vd_link,category)
                 name_of_file = os.path.join(self.download_path, video_infor['Video-name'])

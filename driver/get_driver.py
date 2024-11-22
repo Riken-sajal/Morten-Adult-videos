@@ -334,7 +334,7 @@ class StartDriver():
         
         
         
-    def wait_for_file_download(self,timeout=600,download_dir="downloads"):
+    def wait_for_file_download(self,files = [], timeout=60,download_dir="downloads"):
         """
         Waits for a file download to complete in the specified directory (non-recursively),
         accounting for downloads that start late within the timeout period.
@@ -349,23 +349,31 @@ class StartDriver():
         """
         print('Waiting for download to start...')
         start_time = time.time()
-
+        
         # Ensure the directory exists
         if not os.path.exists(download_dir):
             raise FileNotFoundError(f"Download directory '{download_dir}' does not exist.")
 
         crdownload_file = None
 
-        while time.time() - start_time < timeout:
-
+        for i in range(timeout):
+            time.sleep(1)
+            
             # List only files in the top level of the directory
-            files = [f for f in os.listdir(download_dir) if os.path.isfile(os.path.join(download_dir, f))]
-            crdownload_files = [f for f in files if f.endswith('.crdownload')]
+            files_new = [f for f in os.listdir(download_dir) if os.path.isfile(os.path.join(download_dir, f))]
+            crdownload_files = [f for f in files_new if f.endswith('.crdownload')]
 
             if crdownload_files:
                 crdownload_file = crdownload_files[0]
                 print(f"Download started: {crdownload_file}")
                 break
+        else :
+            for f in os.listdir(download_dir) : 
+                if os.path.isfile(os.path.join(download_dir, f)) :
+                    if not f in files :
+                        if f.endswith(".mp4") :
+                            return f
+            
 
         if not crdownload_file:
             print("No download started within the timeout period.")
