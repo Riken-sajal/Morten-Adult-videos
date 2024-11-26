@@ -16,7 +16,7 @@ class Command(BaseCommand, Bot):
         self.download_path = os.path.join(os.getcwd(),'downloads')
         [ os.remove(os.path.join(os.getcwd(),'downloads',i)) for i in os.listdir('downloads') if i.endswith('.crdownload') or i.endswith('.mp4') ]
         
-        self.sexmax = configuration.objects.get(website_name='Sexmex')
+        self.sexmex = configuration.objects.get(website_name='Sexmex')
         self.handjob_category_path = self.create_or_check_path('handjob_category_videos')
         
         self.csv_folder_path = self.create_or_check_path('csv',main=True)

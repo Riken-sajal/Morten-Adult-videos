@@ -43,10 +43,10 @@ class Bot(StartDriver):
     def sexmax_video_download(self):
         csv_name = 'Sexmex'
         self.check_csv_exist(csv_name)
-        if self.sexmax.main_category :
-            self.sexmex_category_path = self.create_or_check_path(self.sexmex_category_path,sub_folder_=self.sexmax.main_category)
+        if self.sexmex.main_category :
+            self.sexmex_category_path = self.create_or_check_path(self.sexmex_category_path,sub_folder_=self.sexmex.main_category)
         
-        df_url = [i.Url for i in VideosData.objects.filter(configuration=self.sexmax)]
+        df_url = [i.Url for i in VideosData.objects.filter(configuration=self.sexmex)]
         
         max_video = self.sexmex.numbers_of_download_videos
         found_videos = 0
@@ -62,7 +62,7 @@ class Bot(StartDriver):
             for div in all_div:
                 scene_date = div.find_element(By.CLASS_NAME, 'scene-date').text
                 
-                if self.date_older_or_not(scene_date,self.sexmax.more_than_old_days_download):
+                if self.date_older_or_not(scene_date,self.sexmex.more_than_old_days_download):
                     link = div.find_element(By.XPATH, '//h5/a').get_attribute('href')
                     if link not in df_url:
                         video_list.append(link)
@@ -105,8 +105,8 @@ class Bot(StartDriver):
                 tmp['Username'] =  self.sexmex.website_name     
                                  
                 media_path = os.path.join(os.getcwd(),'media')
-                video_media_path = os.path.join(media_path,'videos','sexmex_category_videos',self.sexmax.main_category)
-                image_media_path = os.path.join(media_path,'image','sexmex_category_videos',self.sexmax.main_category)
+                video_media_path = os.path.join(media_path,'videos','sexmex_category_videos',self.sexmex.main_category)
+                image_media_path = os.path.join(media_path,'image','sexmex_category_videos',self.sexmex.main_category)
 
                 os.makedirs(video_media_path, exist_ok=True)
                 os.makedirs(image_media_path, exist_ok=True)
@@ -126,8 +126,8 @@ class Bot(StartDriver):
                 
                
 
-                object_video_file = os.path.join('videos','sexmex_category_videos',self.sexmax.main_category,f'{video_name}.mp4')
-                object_image_file = os.path.join('image','sexmex_category_videos',self.sexmax.main_category,f'{video_name}.jpg')
+                object_video_file = os.path.join('videos','sexmex_category_videos',self.sexmex.main_category,f'{video_name}.mp4')
+                object_image_file = os.path.join('image','sexmex_category_videos',self.sexmex.main_category,f'{video_name}.jpg')
                 print("Image file : ",object_image_file)
                 print("Video file : ",object_video_file)
 
@@ -145,8 +145,8 @@ class Bot(StartDriver):
                     Pornstarts = tmp["Pornstarts"],
                     configuration = self.sexmex
                 )
-                if self.sexmax.main_category :
-                    cetegory_obj, _ = cetegory.objects.get_or_create(category = self.sexmax.main_category)
+                if self.sexmex.main_category :
+                    cetegory_obj, _ = cetegory.objects.get_or_create(category = self.sexmex.main_category)
                     videos_data_obj.cetegory = cetegory_obj
                     videos_data_obj.save()
                 
