@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_crontab'
 ]
 
 MIDDLEWARE = [
@@ -134,3 +135,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # The URL prefix for accessing media files (in development)
 MEDIA_URL = '/media/'
+
+
+CRONJOBS = [
+    ('*/5 * * * *', 'app.crontasks.Calling_commands'),
+]
