@@ -1,3 +1,4 @@
+from numpy import delete
 from driver.get_driver import StartDriver
 import json, random, os, time, requests, urllib, shutil
 from utils.mail import SendAnEmail
@@ -84,12 +85,9 @@ class Bot(StartDriver):
                 
                 v_url = f'http://208.122.217.49:8000/API/{self.sexmex_category_path.replace(self.base_path,"")}/{video_name}.mp4'
                 p_url = f'http://208.122.217.49:8000/API/{self.sexmex_category_path.replace(self.base_path,"")}/{video_name}.jpg'
-                photo_url = self.find_element('photo url','video', By.TAG_NAME).get_attribute('poster')
-                if photo_url:
-                    response = requests.get(photo_url)
-                    with open(os.path.join(self.sexmex_category_path, f'{video_name}.jpg'), 'wb') as f:
-                        f.write(response.content)
-
+                photo_url = ""
+                photo_url = self.find_element('photo url','video', By.TAG_NAME).get_attribute('poster') 
+                
                 tmp = {}
                 tmp['Likes'] = "Not available"
                 tmp['Disclike'] = "Not available"
@@ -104,22 +102,36 @@ class Bot(StartDriver):
                 tmp['Photo-name'] = f'{video_name}.jpg'
                 tmp['Pornstarts'] = model_name     
                 tmp['Category'] = "Not available"
-                tmp['Username'] =  self.sexmex.website_name                      
+                tmp['Username'] =  self.sexmex.website_name     
+                                 
+                media_path = os.path.join(os.getcwd(),'media')
+                video_media_path = os.path.join(media_path,'videos','sexmex_category_videos',self.sexmax.main_category)
+                image_media_path = os.path.join(media_path,'image','sexmex_category_videos',self.sexmax.main_category)
+
+                os.makedirs(video_media_path, exist_ok=True)
+                os.makedirs(image_media_path, exist_ok=True)
+                
+                final_video_media_path = os.path.join(video_media_path,f'{video_name}.mp4')
+                final_image_media_path = os.path.join(image_media_path,f'{video_name}.jpg')
+                
+                if not photo_url :
+                    photo_url = self.find_element('photo url','video', By.TAG_NAME).get_attribute('poster') 
+                if photo_url:
+                    response = requests.get(photo_url)
+                    with open(final_image_media_path, 'wb') as f: 
+                        f.write(response.content)
                 
                 video_url = self.find_element('video url', '//*[text()="1080p"]').get_attribute('value')
-                self.download_video_from_request(video_url, os.path.join(self.sexmex_category_path, f'{video_name}.mp4'))
+                self.download_video_from_request(video_url, final_video_media_path)
+                
+               
 
-                video_file = f'{self.sexmex_category_path}/{video_name}.mp4'
-                if os.path.exists(video_file) :
-                    video_file = self.copy_files_in_media_folder(video_file)
-                    
-                image_file = f'{self.sexmex_category_path}/{video_name}.jpg'
-                if os.path.exists(image_file) :
-                    image_file = self.copy_files_in_media_folder(image_file)
-                    
+                object_video_file = os.path.join('videos','sexmex_category_videos',self.sexmax.main_category,f'{video_name}.mp4')
+                object_image_file = os.path.join('image','sexmex_category_videos',self.sexmax.main_category,f'{video_name}.jpg')
+                print("Image file : ",object_image_file)
+                print("Video file : ",object_video_file)
+
                 videos_data_obj = VideosData.objects.create(
-                    video = video_file,
-                    image = image_file,
                     Username = self.sexmex.username,
                     Likes = 0,
                     Disclike = 0,
@@ -128,7 +140,6 @@ class Bot(StartDriver):
                     Discription = discription,
                     Release_Date = tmp["Release-Date"],
                     Poster_Image_url = tmp["Poster-Image_uri"],
-                    video_download_url = tmp["poster_download_uri"],
                     Video_name = tmp["Video-name"],
                     Photo_name = tmp["Photo-name"],
                     Pornstarts = tmp["Pornstarts"],
@@ -138,6 +149,13 @@ class Bot(StartDriver):
                     cetegory_obj, _ = cetegory.objects.get_or_create(category = self.sexmax.main_category)
                     videos_data_obj.cetegory = cetegory_obj
                     videos_data_obj.save()
+                
+                if os.path.exists(final_video_media_path) and os.path.exists(final_image_media_path) :
+                    videos_data_obj.video = object_video_file
+                    videos_data_obj.image = object_image_file
+                    videos_data_obj.save()
+                else :
+                    videos_data_obj.delete()
                     
             except :
                 pass
