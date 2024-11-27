@@ -46,7 +46,7 @@ def download_file(request, file_path):
 import csv
 from django.http import HttpResponse
 from django.utils.timezone import now
-from .models import VideosData, configuration, cetegory
+from .models import VideosData, configuration, cetegory, RunScript
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.http import FileResponse
@@ -140,11 +140,32 @@ def download_csv(request, config_id, category_id=None):
     # If category_id is not provided, generate CSV for the main category (no specific category filter)
     return generate_csv(config, None, request, is_main_category=True)
 
+from datetime import datetime, timedelta
+from django.utils import timezone
 
 def list_csvs(request):
     configs = configuration.objects.all()
     data = []
 
+    def get_next_run_time():
+        # Assuming you have only one entry in RunScript
+        run_script = RunScript.objects.first()
+
+        # Get the current time in UTC (or your desired timezone)
+        current_datetime = timezone.now()
+
+        # Calculate the next run time by adding the datetime interval to last_run
+        next_run_time = run_script.last_run + timedelta(hours=run_script.datetime)
+
+        # If the next run time is in the future, return that time. Otherwise, calculate the next possible run time.
+        if next_run_time > current_datetime:
+            return next_run_time
+        else:
+            # If the next run time has already passed, schedule the next run at a future time.
+            return current_datetime + timedelta(hours=run_script.datetime)
+        
+    next_run = get_next_run_time()
+    
     # Loop through all configurations
     for config in configs:
         
@@ -153,18 +174,21 @@ def list_csvs(request):
             videos_data = VideosData.objects.filter(configuration=config, cetegory=category)
             if videos_data :
                 number_of_videos = videos_data.count()
-                last_download = videos_data.last().created_at.strftime('%b %d, %Y')
+                last_download = videos_data.last().created_at.strftime('%b %d, %Y at %I %p')
+                formatted_next_run = next_run.strftime('%b %d, %Y at %I:%M %p')
             else:
                 number_of_videos = ""
                 last_download = ""
+                formatted_next_run = ""
             data.append({
                 'config': config,
                 'category': category,
                 'download_link': reverse('download_csv', args=[config.id, category.id]), 
                 'number_of_videos': number_of_videos, 
                 'Last_downloaded_videos': last_download, 
+                'formatted_next_run': formatted_next_run, 
             })
-            
+
     return render(request, 'list_csvs.html', {'data': data})
 
 def download_media_file(request, file_path):

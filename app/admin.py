@@ -1,6 +1,5 @@
 from django.contrib import admin
-from .models import VideosData, send_mail, sender_mail, configuration, cetegory
-# Register your models here.
+from .models import VideosData, send_mail, sender_mail, configuration, cetegory, RunScript
 
 admin.site.register(send_mail)
 admin.site.register(sender_mail)
@@ -23,3 +22,7 @@ class VideosDataAdmin(admin.ModelAdmin):
 @admin.register(cetegory)
 class VideosDataAdmin(admin.ModelAdmin):
     list_display = ('category','link')
+    
+@admin.register(RunScript)
+class VideosDataAdmin(admin.ModelAdmin):
+    list_display = ('datetime',)

@@ -5,4 +5,4 @@ def Calling_commands():
     
     call_command('tasks_commands')
 
-    pass
+
